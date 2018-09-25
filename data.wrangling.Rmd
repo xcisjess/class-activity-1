@@ -17,13 +17,12 @@ DF1 <- read.csv("swirl-data.csv", header = TRUE)
 DF2 <- select(DF1,hash,lesson_name,attempt)
 
 #6. Use the `group_by` function to create a data frame that sums all the attempts for each `hash` by each `lesson_name` called `DF3`.
-DF3 <- DF1 %>% group_by(hash,lesson_name) %>% summarise(sum(attempt))
+DF3 <- DF1 %>% group_by(hash,lesson_name) %>% summarise(count=sum(attempt))
 
 #7. On a scrap piece of paper draw what you think `DF3` would look like if all the lesson names were column names.
 #8. Convert `DF3` to this format.
-name <- c("hash","lesson_name","count")
-colnames (DF3) <- name
 DF3 <- DF3 %>% na.omit()
+DF3b <- spread(DF3,lesson_name,count)
 #na.omit()is more effective than filter()with logic
 
 #9. Create a new data frame from `DF1` called `DF4` that only includes the variables `hash` and `correct`. 
@@ -31,18 +30,25 @@ DF4 <- select(DF1,hash,correct)
 
 #10. Convert the `correct` variable so that `TRUE` is coded as the **number** `1` and `FALSE` is coded as `0`.
 #Since we have some missing data here, if we just delete it as missing value, we are going to lose entries. So I'm going to fill NA with 0.
+
+#DF4$correct <- ifelse (DF4$correct == TRUE, 1, ifelse(DF4$correct == NA, NA, 0))
 DF4$correct <- recode(DF4$correct, "TRUE" = 1, "FALSE" = 0)
 DF4 <- DF4 %>% mutate(correct = coalesce(correct, 0))
+
 
 #11. Create a new data frame that called `DF4` that provides a mean score for each student.
 DF4 <- DF4 %>%  
   group_by(hash) %>% 
   summarise(avg = mean(correct))
+```
 
+
+
+```{r}
 #12. **Extra credit** Convert the `datetime` variable into month-day-year format and create a new data frame (`DF5`) that shows the average correct for each day.
 DF5 <- select(DF1, datetime,correct)
 DF5 <- filter(DF5,!is.na(datetime))
-##Convert the datetime
+##Convert the datetime,
 DF5$datetime <- structure(DF5$datetime,class=c('POSIXt','POSIXct'))
 DF5$day <- format(DF5$datetime, "%m-%d-%Y")
 ##Recode the correct
@@ -53,4 +59,12 @@ DF5 <- DF5 %>%
   group_by(day) %>% 
   summarise(avg = mean(correct))
 
+```
+
+
+datetime (alternative)
+
+```{r}
+DF6$datetime <- as.POSIXlt (DF6$datatime,origin = "1970-01-01 00:00.0 UTC")
+DF6$datetime <- strftime(DF6$datetime,format="%b:%e")
 ```
